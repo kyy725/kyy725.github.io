@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function read() {
+  return new Promise(function(resolve, reject) { // 1
+    navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: []
+      })
+      .then((device) => {
+        console.log('Discovered', device);
+        PCB = device;
+        resolve();
+        return PCB.gatt.connect();
+      })
+      .then(server => {
+        gattServer = server;
+        console.log('getting server');
+        return gattServer.getPrimaryService(0x1815);
+      })
+      .then(service => {
+        console.log('getting characteristic');
+        if (0x2a56) {
+          return service.getCharacteristic(0x2a56);
+        }
+        return service.getCharacteristic();
+      })
+      .then(characteristics => {
+        console.log('> Characteristics: ' + characteristics +
+          characteristics.map(c => c.uuid).join('\n' + ' '.repeat(19)));
+        resolve(); // 2
+      })
+      .catch(error => {
+        console.log(error);
+        reject();
+      });
+  })
+}
+
+</script>
+</head>
+
+<body>
+
+<h2>bluetooth connect</h2>
+
+<p id="demo">test1</p>
+
+
+<button type="button" onclick="read()">scan</button>
+
+</body>
+</html>
